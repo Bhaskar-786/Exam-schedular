@@ -1,8 +1,6 @@
-# models/__init__.py
-
 from .course import Course
-from .color import Color
 from .student import Student
+from .color import Color
 from .lecture_hall import LectureHall
 
-__all__ = ['Course', 'Color', 'Student', 'LectureHall']
+__all__ = ['Course', 'Student', 'Color', 'LectureHall']
