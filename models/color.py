@@ -3,11 +3,6 @@ from models.lecture_hall import LectureHall
 
 
 class Color:
-    """
-    Represents a timeslot in the exam schedule.
-
-    """
-
     def __init__(self, day: int, slot: int):
         self.day = day
         self.slot = slot
@@ -15,12 +10,19 @@ class Color:
         self.lecture_halls: List[LectureHall] = []
 
     def capacity_available(self) -> int:
-        """Total capacity available in all lecture halls."""
-        return sum(hall.total_capacity() for hall in self.lecture_halls)
+        """Returns maximum number of students that can be accommodated."""
+        capacity = 0
+        for hall in self.lecture_halls:
+            capacity += hall.availability()['total']
+        return capacity
 
     def lecture_hall_list(self) -> List[LectureHall]:
         """List of lecture halls with available capacity."""
-        return [hall for hall in self.lecture_halls if hall.has_capacity()]
+        available_halls = []
+        for hall in self.lecture_halls:
+            if hall.availability()['total'] > 0:
+                available_halls.append(hall)
+        return available_halls
 
-    def __str__(self):
-        return f"Day {self.day}, Slot {self.slot}"
+    def __unicode__(self):
+        return 'color %s %s' % (self.day, self.slot)

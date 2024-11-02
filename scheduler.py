@@ -1,1 +1,1 @@
-from models import Course, Student, Color, LectureHall
+ 

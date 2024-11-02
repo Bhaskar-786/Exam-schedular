@@ -38,5 +38,12 @@ class Course:
         color.courses.append(self)
         print(f"Assigned: {self.course_code} to Day {color.day}, Slot {color.slot}")
 
+    def get_hall_list(self) -> str:
+        res = ""
+        for hall, info in self.lecture_halls.items():
+          res += f"L{hall.id} {info} "
+        return res.strip()
+
+
     def __str__(self):
         return f"{self.course_code}"
