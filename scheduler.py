@@ -77,14 +77,80 @@ def check_three_exams_constraint(course, color_jk, day, color_matrix):
     """
     Ensure that no student has more than two exams on the same day.
     """
-    
+    students = course.student_list
+
+    for student in students:
+        counter = 0
+        for slot in range(TIME_SLOTS):
+            course_list = color_matrix[day][slot].courses
+            for scheduled_course in course_list:
+                if student in scheduled_course.student_list:
+                    counter += 1
+                    if counter == 2:
+                        return False
+
+    return True
 
 
 def get_smallest_available_color(course, color_matrix, constraints):
     """
     Find the smallest available color for a course that satisfies all constraints.
     """
-     
+    adj_list = course.adjacency_list
+    for day in range(MAX_SCHEDULE_DAYS):
+      for slot in range(TIME_SLOTS):
+        valid = True
+
+        color = color_matrix[day][slot]
+        
+        # Construct sorted_list as per get_first_node_color
+        sorted_list = []
+        for lh in color.lecture_halls:
+            if lh.odd > 0 and lh.odd_capacity > 0:
+                sorted_list.append(((lh, 'o'), lh.odd_capacity))
+            if lh.even > 0 and lh.even_capacity > 0:
+                sorted_list.append(((lh, 'e'), lh.even_capacity))
+        
+        # Sort the list based on seats in descending order
+        sorted_list.sort(key=lambda x: x[1], reverse=True)
+        
+        # Call get_lecture_hall with the correctly formatted sorted_list
+        assigned_lh = get_lecture_hall(course.no_of_students, sorted_list)
+        
+        if not assigned_lh:
+            valid = False
+            continue
+
+        for adj_course in adj_list:
+            color_adj = adj_course.color
+            if color_adj:
+                if color_adj.day != day or color_adj.slot != slot:
+                    if "check_dis_3" in constraints:
+                        if not dis_3(color_adj, color_matrix[day][slot]):
+                            valid = False
+                            break
+
+                    if "check_consecutive" in constraints:
+                        if dis_2(color_adj, color_matrix[day][slot]) == 0:
+                            if dis_1(color_adj, color_matrix[day][slot]) <= 1:
+                                valid = False
+                                break
+
+                    if "check_three_exams" in constraints:
+                        if not check_three_exams_constraint(course, color_matrix[day][slot], day, color_matrix):
+                            valid = False
+                            break
+                else:
+                    valid = False
+                    break
+            else:
+                continue
+
+        if valid:
+            return color_matrix[day][slot], assigned_lh
+
+    return None
+
 
 def schedule_exam(sorted_courses, constraints, count, color_matrix):
     """
@@ -176,4 +242,22 @@ def get_first_node_color(course, color_matrix):
     """
     Assign the first available color to the first course.
     """
-     
+    for day in range(MAX_SCHEDULE_DAYS):
+        for slot in range(TIME_SLOTS):
+            color = color_matrix[day][slot]
+            
+            sorted_list = []
+            for lh in color.lecture_halls:
+                if lh.odd > 0:
+                    sorted_list.append(((lh, 'o'), lh.odd_capacity))
+                if lh.even > 0:
+                    sorted_list.append(((lh, 'e'), lh.even_capacity))
+            
+            sorted_list.sort(key=lambda x: x[1], reverse=True)
+            
+            hall_list = get_lecture_hall(course.no_of_students, sorted_list)
+            
+            if hall_list:
+                return color, hall_list
+
+    return None

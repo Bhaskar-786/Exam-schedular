@@ -46,21 +46,96 @@ def build_weight_matrix():
     """
     Build the weight matrix representing course conflicts and initialize courses.
     """
-     
+    with open('data/data_course.json', 'r') as data_file:
+        course_data = json.load(data_file)
+
+    with open('data/mid_sem_exam_schedule.json', 'r') as data_file:
+        exam_data = json.load(data_file)
+
+    course_index = {}
+    courses = []
+    counter = 1
+    err_courses = []
+
+    for course_code, students in course_data.items():
+        if not students:
+            continue
+        try:
+            old_day, old_slot = exam_data[course_code][0], exam_data[course_code][1]
+            crs = Course(counter, course_code, students, old_day, old_slot)
+        except KeyError:
+            err_courses.append(course_code)
+            crs = Course(counter, course_code, students, 0, 0)
+        courses.append(crs)
+        course_index[course_code] = crs
+        counter += 1
+
+    with open('err_courses.txt', 'w') as out:
+        out.write(str(err_courses))
+
+    total = len(courses)
+    graph = np.zeros((total, total), dtype=int)
+
+    # Assigning weights to matrix
+    for i in range(total):
+        for j in range(i + 1, total):
+            graph[i, j] = calculate_common_students(courses[i], courses[j])
+            graph[j, i] = graph[i, j]
+
+    # Adding adjacent courses to adjacency lists
+    for i in range(total):
+        courses[i].max_adjacency = np.max(graph[i])
+        for j in range(total):
+            if graph[i, j] > 0:
+                courses[i].adjacency_list.append(courses[j])
+
+    return graph, courses, course_index
 
 
 def initialize_lecture_halls(color_matrix):
     """
     Initialize lecture halls and assign them to each color (day-slot).
     """
-     
+    with open('data/lecture_halls.json', 'r') as data_file:
+        data = json.load(data_file)
+
+    lecture_halls = []
+
+    for day in range(MAX_SCHEDULE_DAYS):
+        for slot in range(TIME_SLOTS):
+            color = color_matrix[day][slot]
+            for number, capacity in data.items():
+                lec_hall = LectureHall(number, capacity[0], capacity[1], color)
+                lecture_halls.append(lec_hall)
+                color.lecture_halls.append(lec_hall)
+    return lecture_halls
 
 
 def initialize_students(course_index):
     """
     Initialize students with their enrolled courses.
     """
-     
+    with open('data/data_student.json', 'r') as data_file:
+        data = json.load(data_file)
+
+    student_list = []
+
+    for roll, courses in data.items():
+        course_objects = []
+        for course_code in courses:
+            if course_code in course_index:
+                course_objects.append(course_index[course_code])
+            else:
+                print(f"No object for {course_code}")
+
+        std = Student(roll, course_objects)
+        student_list.append(std)
+
+        # Assuming you want to print the last student's details
+        print(std.roll_no, [course.course_code for course in std.courses_enrolled])
+
+    return student_list
+
 
 def binary_search(alist, item):
     """
@@ -87,7 +162,39 @@ def get_lecture_hall(max_students, sorted_list):
     """
     Select a combination of lecture halls to accommodate the maximum number of students.
     """
-     
+    lecturehall_list = list(sorted_list)  # Make a mutable copy
+    selected_lecture_halls = {}
+
+    while max_students > 0 and lecturehall_list:
+        i = binary_search(lecturehall_list, max_students)
+        if i < 0:
+            i = 0
+        elif i >= len(lecturehall_list):
+            i = len(lecturehall_list) - 1
+
+        if i < 0:
+            selected_lecture_halls = {}
+            break
+
+        seats = lecturehall_list[i][1]
+        max_students -= seats
+
+        lecturehall_object = lecturehall_list[i][0][0]
+        seating_type = lecturehall_list[i][0][1]
+
+        del lecturehall_list[i]
+
+        selected_lecture_halls[lecturehall_object] = seating_type
+
+        lecturehall_list = [
+            lh for lh in lecturehall_list 
+            if lh[0][0].number != lecturehall_object.number
+        ]
+
+    if max_students > 0:
+        return {}
+
+    return selected_lecture_halls
 def output_to_csv(time_slots, max_schedule_days, color_matrix):
     """
     Export the final exam schedule to a CSV file.
@@ -105,5 +212,6 @@ def output_to_csv(time_slots, max_schedule_days, color_matrix):
                 day_str = f"Day {day + 1} Slot {slot + 1}"
                 schedule.writerow([day_str, color_str])
             schedule.writerow([])
+
 
 
