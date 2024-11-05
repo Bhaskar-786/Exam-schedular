@@ -11,9 +11,7 @@ from utils import (
 from scheduler import hard_schedule
 
 def main():
-    """
-    Main function to execute the exam scheduling process.
-    """
+    
     graph, course_list, course_index = build_weight_matrix()
 
     # Calculate degrees for prioritizing course scheduling
@@ -64,7 +62,6 @@ def main():
             count += len(courses_in_slot)
     print("Total Courses:", count)
 
-    # Run tests to check for scheduling clashes and constraint violations
     #test_for_clash(student_list, TIME_SLOTS)
     #test_constraints(student_list, TIME_SLOTS)
 
