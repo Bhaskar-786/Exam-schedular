@@ -1,8 +1,8 @@
 import pandas as pd
 
  
-cbcs_df = pd.read_csv("Student_cbcs.csv")
-nep_df = pd.read_csv("Student_nep.csv")
+cbcs_df = pd.read_csv("students_cbcs_cleaned.csv")
+nep_df = pd.read_csv("students_nep_cleaned.csv")
 
  
 cbcs_courses = set(cbcs_df["sub_code"].unique())
