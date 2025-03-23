@@ -11,12 +11,10 @@ from utils import (
 from scheduler import hard_schedule
 
 def main():
-    
     graph, course_list, course_index = build_weight_matrix()
 
     # Calculate degrees for prioritizing course scheduling
     calculate_degree(graph, course_list)
-    print("Total Courses:", len(course_list))
 
     # Sort courses based on degree and maximum adjacency
     sorted_courses = sorted(
@@ -34,37 +32,66 @@ def main():
     no_of_unscheduled_courses = hard_schedule(sorted_courses, color_matrix)
 
     if no_of_unscheduled_courses != 0:
-        print("Increase days or slots.", no_of_unscheduled_courses, "courses remain unscheduled")
+        print(f"Unable to schedule {no_of_unscheduled_courses} courses. Consider increasing the number of days or slots.")
 
-    # Print and output schedule
-    for course in course_list:
-        if course.lecture_halls:
-            res = f"{course.course_code} :: Day {course.color.day + 1} Slot {course.color.slot + 1}, Rooms :"
-            for hall, position in course.lecture_hall.items():
-                res += f" L{hall.number} {position}"
-            res += f" Strength: {course.no_of_students}"
-            print(res)
-    print("\n")
+    # Prepare schedule data for output
+    schedule_data = []
+    for day in range(MAX_SCHEDULE_DAYS):
+        for slot in range(TIME_SLOTS):
+            courses_in_slot = color_matrix[day][slot].courses
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    schedule_data.append({
+                        'Day': day + 1,
+                        'Slot': slot + 1,
+                        'Course Code': course.course_code,
+                        'Students': course.no_of_students
+                    })
+
+    # Sort schedule data by Day and Slot
+    schedule_data.sort(key=lambda x: (x['Day'], x['Slot']))
+
+    # Print schedule in a table format
+    print("\nExam Schedule:")
+    print(f"{'Day':<5} {'Slot':<5} {'Course Code':<10} {'Students':<10}")
+    print("-" * 40)
+    for item in schedule_data:
+        print(f"{item['Day']:<5} {item['Slot']:<5} {item['Course Code']:<10} {item['Students']:<10}")
+
+    # Print schedule for the first three students
+    print("\nSchedules for the first three students:")
+    student_ids = ['S1', 'S2', 'S3']
+    for student_id in student_ids:
+        student_courses = []
+        for course in course_list:
+            if student_id in course.student_list:
+                student_courses.append({
+                    'Course Code': course.course_code,
+                    'Day': course.color.day + 1 if course.color else None,
+                    'Slot': course.color.slot + 1 if course.color else None
+                })
+        print(f"\nStudent {student_id}:")
+        if student_courses:
+            for sc in student_courses:
+                if sc['Day'] and sc['Slot']:
+                    print(f"  {sc['Course Code']}: Day {sc['Day']}, Slot {sc['Slot']}")
+                else:
+                    print(f"  {sc['Course Code']}: Not scheduled")
+        else:
+            print("  No courses found for this student.")
 
     # Export the schedule to CSV
     output_to_csv(TIME_SLOTS, MAX_SCHEDULE_DAYS, color_matrix)
 
-    # Additional printing and testing
-    alloted_courses = []
-    count = 0
-    for day in range(MAX_SCHEDULE_DAYS):
-        for slot in range(TIME_SLOTS):
-            courses_in_slot = color_matrix[day][slot].courses
-            students_in_slot = sum([course.no_of_students for course in courses_in_slot])
-            alloted_courses.extend(courses_in_slot)
-            course_codes = [course.course_code for course in courses_in_slot]
-            print(f"Day {day + 1} Slot {slot + 1} : Courses : {course_codes}, Students : {students_in_slot}")
-            count += len(courses_in_slot)
-    print("Total Courses:", count)
-
-    #test_for_clash(student_list, TIME_SLOTS)
-    #test_constraints(student_list, TIME_SLOTS)
-
+    # Optionally, print total number of scheduled courses
+    total_scheduled_courses = len(schedule_data)
+    total_courses = len(course_list)
+    unscheduled_courses = total_courses - total_scheduled_courses
+    print(f"\nTotal Scheduled Courses: {total_scheduled_courses}")
+    if unscheduled_courses > 0:
+        print(f"Total Unscheduled Courses: {unscheduled_courses}")
+    else:
+        print("All courses have been scheduled successfully.")
 
 if __name__ == "__main__":
     main()

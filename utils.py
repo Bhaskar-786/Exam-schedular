@@ -8,8 +8,8 @@ from models.color import Color
 from models.student import Student
 from models.lecture_hall import LectureHall
 
-MAX_SCHEDULE_DAYS = 1
-TIME_SLOTS = 3
+MAX_SCHEDULE_DAYS = 15
+TIME_SLOTS = 2
 GAMMA = 0.5  # Used in distance calculations for coloring scheme
 
 
@@ -131,8 +131,8 @@ def initialize_students(course_index):
         std = Student(roll, course_objects)
         student_list.append(std)
 
-        # Assuming you want to print the last student's details
-        print(std.roll_no, [course.course_code for course in std.courses_enrolled])
+        
+        #print(std.roll_no, [course.course_code for course in std.courses_enrolled])
 
     return student_list
 

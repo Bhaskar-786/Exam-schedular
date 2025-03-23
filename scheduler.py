@@ -204,7 +204,7 @@ def schedule_exam(sorted_courses, constraints, count, color_matrix):
             for course in color_matrix[day][slot].courses:
                 alloted_courses.append(course)
 
-    print(len(alloted_courses))
+     
     unalloted_courses = list(set(sorted_courses) - set(alloted_courses))
     for c in unalloted_courses:
         c.flag = 1
