@@ -8,7 +8,7 @@ from models.color import Color
 from models.student import Student
 from models.lecture_hall import LectureHall
 
-MAX_SCHEDULE_DAYS = 15
+MAX_SCHEDULE_DAYS = 8
 TIME_SLOTS = 2
 GAMMA = 0.5  # Used in distance calculations for coloring scheme
 
