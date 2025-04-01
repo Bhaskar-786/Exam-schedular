@@ -121,7 +121,7 @@ def generate_schedule():
     try:
         main()
         schedule_data = 'exam_schedule.csv'  # Modify accordingly with real schedule data
-        hall_allocation_data = 'exam_schedule.csv'  # Modify accordingly with hall allocation data
+        hall_allocation_data = 'lecture_hall_schedule.csv'  # Modify accordingly with hall allocation data
         
         # Returning the generated schedule as a response
         return jsonify({
@@ -141,7 +141,7 @@ def download_schedule(file_type, file_name):
             if file_name == "schedule":
                 file_name = f'exam_schedule.{file_type}'
             elif file_name == "hall_accommodation":
-                file_name = f'exam_schedule.{file_type}'
+                file_name = f'lecture_hall_schedule.{file_type}'
             else:
                 return jsonify({"error": "Invalid file name"}), 400
 
@@ -149,10 +149,10 @@ def download_schedule(file_type, file_name):
         elif file_type == 'pdf':
             if file_name == "schedule":
                 file_name = f'exam_schedule.csv'
-                output_name = 'exam_schedule.pdf'
+                output_name = f'exam_schedule.{file_type}'
             elif file_name == "hall_accommodation":
-                file_name = f'exam_schedule.csv'
-                output_name = 'exam_schedule.pdf'
+                file_name = f'lecture_hall_schedule.csv'
+                output_name = f'lecture_hall_schedule.{file_type}'
             else:
                 return jsonify({"error": "Invalid file name"}), 400
             convert_csv_to_pdf(file_name, output_name)

@@ -24,14 +24,24 @@ def update_lecture_hall(hall_list, course, color):
     Assign selected lecture halls to the course and update their availability.
     """
     course.assign_color(color)
-    if course.no_of_students > 10:
+    if course.no_of_students > 0:
         course.lecture_hall = hall_list
 
-        for hall, position in course.lecture_hall.items():
-            if position == 'o':
-                hall.odd = 0
-            elif position == 'e':
-                hall.even = 0
+        for hall, seating_info in course.lecture_hall.items():
+            for position, seat_taken in seating_info.items():  # Iterate through seat allocations
+                if position == 'o':  # Odd seating
+                    if hall.odd_capacity > seat_taken:
+                        hall.odd_capacity -= seat_taken
+                    else:
+                        hall.odd_capacity = 0
+                        hall.odd = 0  # Set hall as unavailable for odd seating
+                elif position == 'e':  # Even seating
+                    if hall.even_capacity > seat_taken:
+                        hall.even_capacity -= seat_taken
+                    else:
+                        hall.even_capacity = 0
+                        hall.even = 0  # Set hall as unavailable for even seating 
+                
 
 def dis_1(color_1, color_2):
     """

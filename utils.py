@@ -175,7 +175,7 @@ def get_lecture_hall(max_students, sorted_list):
         if i < 0:
             selected_lecture_halls = {}
             break
-
+        """
         seats = lecturehall_list[i][1]
         max_students -= seats
 
@@ -190,11 +190,32 @@ def get_lecture_hall(max_students, sorted_list):
             lh for lh in lecturehall_list 
             if lh[0][0].number != lecturehall_object.number
         ]
+        """
+        seats = lecturehall_list[i][1]
+        lecturehall_object = lecturehall_list[i][0][0]
+        seating_type = lecturehall_list[i][0][1]
+        if lecturehall_object not in selected_lecture_halls:
+                selected_lecture_halls[lecturehall_object] = {}  # Initialize dictionary
+        if(seats>max_students):
+            selected_lecture_halls[lecturehall_object][seating_type] = max_students
+            lecturehall_list[i] = [(lecturehall_object, seating_type), seats - max_students]
+            max_students = 0
+        else:
+            selected_lecture_halls[lecturehall_object][seating_type] = seats
+            del lecturehall_list[i]
+            max_students -= seats
+
+        lecturehall_list = [
+            lh for lh in lecturehall_list 
+            if lh[0][0].number != lecturehall_object.number
+        ]
+
 
     if max_students > 0:
         return {}
 
     return selected_lecture_halls
+'''
 def output_to_csv(time_slots, max_schedule_days, color_matrix):
     """
     Export the final exam schedule to a CSV file.
@@ -212,6 +233,62 @@ def output_to_csv(time_slots, max_schedule_days, color_matrix):
                 day_str = f"Day {day + 1} Slot {slot + 1}"
                 schedule.writerow([day_str, color_str])
             schedule.writerow([])
+'''
+def output_to_csv(time_slots, max_schedule_days, color_matrix, csv_file_path='exam_schedule.csv'):
+    """
+    Export the final exam schedule to a CSV file.
+    
+    Parameters:
+    - time_slots: Number of time slots per day
+    - max_schedule_days: Number of days in the schedule
+    - color_matrix: 2D list with color objects containing courses in each time slot
+    - csv_file_path: Path to the CSV file to be created (default is 'exam_schedule.csv')
+    """
+    if color_matrix is None:
+        raise ValueError("color_matrix cannot be None")
+
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        schedule = csv.writer(csvfile, delimiter=',')
+        schedule.writerow(['Day', 'Slot', 'Course Code', 'No. of Students'])  # Correct headers
+        
+        for day in range(max_schedule_days):
+            for slot in range(time_slots):
+                color = color_matrix[day][slot]
+                courses_in_slot = color.courses
+                if courses_in_slot:
+                    for course in courses_in_slot:
+                        # Write details of the course to the CSV file
+                        schedule.writerow([f"Day {day + 1}", f"Slot {slot + 1}", course.course_code, course.no_of_students])
+
+def convert_lecture_hall_to_csv(schedule_lecture_hall, filename='lecture_hall_schedule.csv'):
+    """
+    Convert the lecture hall allocation to a CSV file.
+    
+    Parameters:
+        schedule_lecture_hall (list): A list of dictionaries containing course, hall, position, and seat information.
+        filename (str): The name of the CSV file to save the schedule to.
+    """
+    if not schedule_lecture_hall:
+        raise ValueError("schedule_lecture_hall cannot be empty")
+    
+    # Open the CSV file in write mode
+    with open(filename, 'w', newline='') as csvfile:
+        schedule = csv.writer(csvfile, delimiter=',')
+        
+        # Write the header
+        schedule.writerow(['Course Code', 'Lecture Hall', 'Position', 'No. of seats'])
+        
+        # Iterate through each entry in the schedule
+        for entry in schedule_lecture_hall:
+            course_code = entry.get("Course Code")
+            lecture_hall = entry.get("Lecture Hall")
+            position = entry.get("Position")
+            seats = entry.get("No. of seats")
+            
+            # Write each entry to the CSV
+            schedule.writerow([course_code, lecture_hall, position, seats])
+    
+    print(f"Lecture hall schedule has been written to '{filename}'.")
 
 
 

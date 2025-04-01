@@ -5,6 +5,7 @@ from utils import (
     initialize_students,
     initialize_lecture_halls,
     output_to_csv,
+    convert_lecture_hall_to_csv,
     MAX_SCHEDULE_DAYS,
     TIME_SLOTS
 )
@@ -48,8 +49,23 @@ def main():
                         'Students': course.no_of_students
                     })
 
+    schedule_lecture_hall = []
+    for course in course_list:
+        for hall, seating_info in course.lecture_hall.items():
+            for position, seat_taken in seating_info.items():  # Iterate through seat allocations
+                schedule_lecture_hall.append({
+                    "Course Code": course.course_code,
+                    "Lecture Hall": hall.number,
+                    "Position": "Left" if position == 'o' else "Right",
+                    "No. of seats": seat_taken
+                })
+
+
     # Sort schedule data by Day and Slot
     schedule_data.sort(key=lambda x: (x['Day'], x['Slot']))
+
+    # Sort schedule lecture hall by Day and Slot
+    schedule_lecture_hall.sort(key=lambda x: (x['Course Code']))
 
     # Print schedule in a table format
     print("\nExam Schedule:")
@@ -58,6 +74,14 @@ def main():
     for item in schedule_data:
         print(f"{item['Day']:<5} {item['Slot']:<5} {item['Course Code']:<10} {item['Students']:<10}")
 
+    # Print Lecture Hall in a table format
+    print("\nLecture Hall Schedule:")
+    print(f"{'Course Code':<10} {'Lecture Hall':<10} {'Position':<10} {'No. of seats':<10}")
+    print("-" * 40)
+    for item in schedule_lecture_hall:
+        print(f"{item['Course Code']:<10} {item['Lecture Hall']:<10} {item['Position']:<10} {item['No. of seats']:<10}")
+
+    """"
     # Print schedule for the first three students
     print("\nSchedules for the first three students:")
     student_ids = ['S1', 'S2', 'S3']
@@ -78,10 +102,12 @@ def main():
                 else:
                     print(f"  {sc['Course Code']}: Not scheduled")
         else:
-            print("  No courses found for this student.")
+            print("  No courses found for this student.")"
+        """
 
     # Export the schedule to CSV
     output_to_csv(TIME_SLOTS, MAX_SCHEDULE_DAYS, color_matrix)
+    convert_lecture_hall_to_csv(schedule_lecture_hall,'lecture_hall_schedule.csv')
 
     # Optionally, print total number of scheduled courses
     total_scheduled_courses = len(schedule_data)
