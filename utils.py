@@ -144,7 +144,7 @@ def binary_search(alist, item):
     first = 0
     last = len(alist) - 1
     found = False
-
+    """
     while first <= last and not found:
         midpoint = (first + last) // 2
         if alist[midpoint][1] == item:
@@ -156,6 +156,8 @@ def binary_search(alist, item):
             else:
                 first = midpoint + 1
     return last + 1
+    """
+    return first
 
 
 def get_lecture_hall(max_students, sorted_list):

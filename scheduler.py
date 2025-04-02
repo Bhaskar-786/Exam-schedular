@@ -122,7 +122,7 @@ def get_smallest_available_color(course, color_matrix, constraints):
                 sorted_list.append(((lh, 'e'), lh.even_capacity))
         
         # Sort the list based on seats in descending order
-        sorted_list.sort(key=lambda x: x[1], reverse=True)
+        #sorted_list.sort(key=lambda x: x[1], reverse=True)
         
         # Call get_lecture_hall with the correctly formatted sorted_list
         assigned_lh = get_lecture_hall(course.no_of_students, sorted_list)
@@ -263,7 +263,7 @@ def get_first_node_color(course, color_matrix):
                 if lh.even > 0:
                     sorted_list.append(((lh, 'e'), lh.even_capacity))
             
-            sorted_list.sort(key=lambda x: x[1], reverse=True)
+            #sorted_list.sort(key=lambda x: x[1], reverse=True)
             
             hall_list = get_lecture_hall(course.no_of_students, sorted_list)
             
