@@ -7,9 +7,10 @@ def lecture_hall_processing(file):
 
     for _, row in df.iterrows():
         hall_name = str(row['Lecture Hall']).strip()
-        odd = int(int(row['Capacity-double'])/2) + int(row['Capacity-single'])
-        even = int(int(row['Capacity-double'])/2)
-        hall_data[hall_name] = [odd, even]
+        odd = int(row['double seated'])
+        even = int(row['double seated'])
+        single = int(row['single seated'])
+        hall_data[hall_name] = [odd, even, single]
 
     with open('data/lecture_halls.json', 'w') as f:
         json.dump(hall_data, f, indent=4)

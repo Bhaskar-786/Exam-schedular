@@ -56,7 +56,7 @@ def main():
                 schedule_lecture_hall.append({
                     "Course Code": course.course_code,
                     "Lecture Hall": hall.number,
-                    "Position": "Left" if position == 'o' else "Right",
+                    "Position": "Left" if position == 'o' else "Right" if position == 'e' else "Single",
                     "No. of seats": seat_taken
                 })
 

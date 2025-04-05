@@ -8,10 +8,14 @@ from models.color import Color
 from models.student import Student
 from models.lecture_hall import LectureHall
 
-MAX_SCHEDULE_DAYS = 8
-TIME_SLOTS = 2
+MAX_SCHEDULE_DAYS = 10
+TIME_SLOTS = 5
 GAMMA = 0.5  # Used in distance calculations for coloring scheme
 
+def set_day_and_slots(noOfDays, noOfSlots):
+    global MAX_SCHEDULE_DAYS, TIME_SLOTS
+    MAX_SCHEDULE_DAYS = noOfDays
+    TIME_SLOTS = noOfSlots
 
 def calculate_common_students(c1, c2):
     """
@@ -105,7 +109,7 @@ def initialize_lecture_halls(color_matrix):
         for slot in range(TIME_SLOTS):
             color = color_matrix[day][slot]
             for number, capacity in data.items():
-                lec_hall = LectureHall(number, capacity[0], capacity[1], color)
+                lec_hall = LectureHall(number, capacity[0], capacity[1], capacity[2], color)
                 lecture_halls.append(lec_hall)
                 color.lecture_halls.append(lec_hall)
     return lecture_halls
@@ -209,7 +213,12 @@ def get_lecture_hall(max_students, sorted_list):
 
         lecturehall_list = [
             lh for lh in lecturehall_list 
-            if lh[0][0].number != lecturehall_object.number
+            if (lh[0][0].number != lecturehall_object.number or 
+                (lh[0][0].number == lecturehall_object.number and lh[0][1]=='s' and seating_type=='o') or
+                (lh[0][0].number == lecturehall_object.number and lh[0][1]=='s' and seating_type=='e') or
+                (lh[0][0].number == lecturehall_object.number and lh[0][1]=='o' and seating_type=='s') or
+                (lh[0][0].number == lecturehall_object.number and lh[0][1]=='e' and seating_type=='s')
+            )
         ]
 
 

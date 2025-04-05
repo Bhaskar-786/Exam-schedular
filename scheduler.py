@@ -41,6 +41,12 @@ def update_lecture_hall(hall_list, course, color):
                     else:
                         hall.even_capacity = 0
                         hall.even = 0  # Set hall as unavailable for even seating 
+                elif position == 's':  # Even seating
+                    if hall.single_capacity > seat_taken:
+                        hall.single_capacity -= seat_taken
+                    else:
+                        hall.single_capacity = 0
+                        hall.single = 0  # Set hall as unavailable for even seating 
                 
 
 def dis_1(color_1, color_2):
@@ -120,6 +126,8 @@ def get_smallest_available_color(course, color_matrix, constraints):
                 sorted_list.append(((lh, 'o'), lh.odd_capacity))
             if lh.even > 0 and lh.even_capacity > 0:
                 sorted_list.append(((lh, 'e'), lh.even_capacity))
+            if lh.single > 0 and lh.single_capacity > 0:
+                sorted_list.append(((lh, 's'), lh.single_capacity))
         
         # Sort the list based on seats in descending order
         #sorted_list.sort(key=lambda x: x[1], reverse=True)
@@ -262,6 +270,8 @@ def get_first_node_color(course, color_matrix):
                     sorted_list.append(((lh, 'o'), lh.odd_capacity))
                 if lh.even > 0:
                     sorted_list.append(((lh, 'e'), lh.even_capacity))
+                if lh.single > 0:
+                    sorted_list.append(((lh, 's'), lh.single_capacity))
             
             #sorted_list.sort(key=lambda x: x[1], reverse=True)
             

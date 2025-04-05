@@ -7,6 +7,7 @@ from fpdf import FPDF
 import os
 from main import (main)
 from DATAprocessingall.lecture_hall_processing import lecture_hall_processing
+from utils import set_day_and_slots
 
 
 app = Flask(__name__)
@@ -134,15 +135,18 @@ def upload_files():
 @app.route('/api/schedule', methods=['POST'])
 def generate_schedule():
     try:
+        mxd = request.form.get('max_days')
+        mxs = request.form.get('max_slots')
+        max_days = int(mxd)
+        max_slots = int(mxs)
+        set_day_and_slots(max_days, max_slots)
         main()
-        schedule_data = 'exam_schedule.csv'  # Modify accordingly with real schedule data
-        hall_allocation_data = 'lecture_hall_schedule.csv'  # Modify accordingly with hall allocation data
-        
+        convert_csv_to_pdf('exam_schedule.csv', 'exam_schedule.pdf')
+        convert_csv_to_pdf('lecture_hall_schedule.csv', 'lecture_hall_schedule.pdf')
         # Returning the generated schedule as a response
-        return jsonify({
-            "schedule": schedule_data,
-            "hall_allocation": hall_allocation_data
-        }), 200
+        return jsonify({"message": "Schedule generated successfully!"}), 200
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid max_days or max_slots input"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -151,7 +155,7 @@ def generate_schedule():
 def download_schedule(file_type, file_name):
     try:
         # If it's a schedule file or hall accommodation file, handle both.
-        if file_type == 'csv':
+        if file_type == 'csv' or file_type == 'pdf':
             # Define valid file names for both schedule and hall accommodation
             if file_name == "schedule":
                 file_name = f'exam_schedule.{file_type}'
@@ -159,19 +163,8 @@ def download_schedule(file_type, file_name):
                 file_name = f'lecture_hall_schedule.{file_type}'
             else:
                 return jsonify({"error": "Invalid file name"}), 400
-
+            
             return send_file(file_name, as_attachment=True)
-        elif file_type == 'pdf':
-            if file_name == "schedule":
-                file_name = f'exam_schedule.csv'
-                output_name = f'exam_schedule.{file_type}'
-            elif file_name == "hall_accommodation":
-                file_name = f'lecture_hall_schedule.csv'
-                output_name = f'lecture_hall_schedule.{file_type}'
-            else:
-                return jsonify({"error": "Invalid file name"}), 400
-            convert_csv_to_pdf(file_name, output_name)
-            return send_file(output_name, as_attachment=True)
         else:
             return jsonify({"error": "Invalid file type"}), 400
     except Exception as e:
