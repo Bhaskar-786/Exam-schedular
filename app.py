@@ -6,6 +6,8 @@ import pandas as pd
 from fpdf import FPDF
 import os
 from main import (main)
+from DATAprocessingall.lecture_hall_processing import lecture_hall_processing
+
 
 app = Flask(__name__)
 CORS(app)
@@ -104,11 +106,24 @@ def home():
 def upload_files():
     try:
         # Process the files here as per your existing logic
-        student_file1 = request.files.get('student_file1')
-        student_file2 = request.files.get('student_file2')
-        if student_file1 and student_file2 and allowed_file(student_file1.filename) and allowed_file(student_file2.filename):
+        student_file_nep = request.files.get('student_file1')
+        student_file_cbcs = request.files.get('student_file2')
+        hall_file = request.files.get('hall_file')
+        
+        # Check hall file
+        if not hall_file or not allowed_file(hall_file.filename):
+            return jsonify({"message": "Please upload a valid Lecture Hall Details file!"}), 400
+
+        # Process hall file
+        lecture_hall_processing(hall_file)
+        
+        if student_file_nep and student_file_cbcs and allowed_file(student_file_nep.filename) and allowed_file(student_file_cbcs.filename):
             # Call your existing file processing functions here
-            #process_files(student_file, hall_file)  # Make sure to modify this function
+            #process_files(student_file1, student_file2)  # Make sure to modify this function
+            return jsonify({"message": "Files processed successfully!"}), 200
+        elif student_file_nep and allowed_file(student_file_nep.filename):
+            # Call your existing file processing functions here
+            #process_files(student_file1)  # Make sure to modify this function
             return jsonify({"message": "Files processed successfully!"}), 200
         else:
             return jsonify({"message": "Please upload both the student files!"}), 400

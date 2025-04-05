@@ -65,7 +65,7 @@ def main():
     schedule_data.sort(key=lambda x: (x['Day'], x['Slot']))
 
     # Sort schedule lecture hall by Course and Lecture Hall
-    schedule_lecture_hall.sort(key=lambda x: (x['Course Code'], int(x['Lecture Hall'][2:])))
+    schedule_lecture_hall.sort(key=lambda x: (x['Course Code']))
 
     # Print schedule in a table format
     print("\nExam Schedule:")
