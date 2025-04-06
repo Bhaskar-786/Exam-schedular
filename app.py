@@ -7,7 +7,6 @@ from fpdf import FPDF
 import os
 from main import (main)
 from DATAprocessingall.lecture_hall_processing import lecture_hall_processing
-from utils import set_day_and_slots
 
 
 app = Flask(__name__)
@@ -139,8 +138,8 @@ def generate_schedule():
         mxs = request.form.get('max_slots')
         max_days = int(mxd)
         max_slots = int(mxs)
-        set_day_and_slots(max_days, max_slots)
-        main()
+        #set_day_and_slots(max_days, max_slots)
+        main(max_days, max_slots)
         convert_csv_to_pdf('exam_schedule.csv', 'exam_schedule.pdf')
         convert_csv_to_pdf('lecture_hall_schedule.csv', 'lecture_hall_schedule.pdf')
         # Returning the generated schedule as a response

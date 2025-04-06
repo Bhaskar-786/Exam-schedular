@@ -1,3 +1,4 @@
+import sys
 from utils import (
     build_weight_matrix,
     calculate_degree,
@@ -6,12 +7,10 @@ from utils import (
     initialize_lecture_halls,
     output_to_csv,
     convert_lecture_hall_to_csv,
-    MAX_SCHEDULE_DAYS,
-    TIME_SLOTS
 )
 from scheduler import hard_schedule
 
-def main():
+def main(max_days, max_slots):
     graph, course_list, course_index = build_weight_matrix()
 
     # Calculate degrees for prioritizing course scheduling
@@ -25,20 +24,20 @@ def main():
     )
 
     # Initialize colors (time slots) and lecture halls
-    color_matrix = initialize_colors()
-    initialize_students(course_index)
-    initialize_lecture_halls(color_matrix)
+    color_matrix = initialize_colors(max_days, max_slots)
+    initialize_students(course_index, max_days, max_slots)
+    initialize_lecture_halls(color_matrix,max_days, max_slots)
 
     # Perform scheduling
-    no_of_unscheduled_courses = hard_schedule(sorted_courses, color_matrix)
+    no_of_unscheduled_courses = hard_schedule(sorted_courses, color_matrix, max_days, max_slots)
 
     if no_of_unscheduled_courses != 0:
         print(f"Unable to schedule {no_of_unscheduled_courses} courses. Consider increasing the number of days or slots.")
 
     # Prepare schedule data for output
     schedule_data = []
-    for day in range(MAX_SCHEDULE_DAYS):
-        for slot in range(TIME_SLOTS):
+    for day in range(max_days):
+        for slot in range(max_slots):
             courses_in_slot = color_matrix[day][slot].courses
             if courses_in_slot:
                 for course in courses_in_slot:
@@ -106,7 +105,7 @@ def main():
         """
 
     # Export the schedule to CSV
-    output_to_csv(TIME_SLOTS, MAX_SCHEDULE_DAYS, color_matrix)
+    output_to_csv(max_slots, max_days, color_matrix)
     convert_lecture_hall_to_csv(schedule_lecture_hall,'lecture_hall_schedule.csv')
 
     # Optionally, print total number of scheduled courses
@@ -120,4 +119,6 @@ def main():
         print("All courses have been scheduled successfully.")
 
 if __name__ == "__main__":
-    main()
+    days = int(sys.argv[1]) if len(sys.argv) > 1 else 8
+    slots = int(sys.argv[2]) if len(sys.argv) > 1 else 2
+    main(days, slots)

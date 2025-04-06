@@ -8,14 +8,14 @@ from models.color import Color
 from models.student import Student
 from models.lecture_hall import LectureHall
 
-MAX_SCHEDULE_DAYS = 10
-TIME_SLOTS = 5
+#MAX_SCHEDULE_DAYS = 5
+#TIME_SLOTS = 3
 GAMMA = 0.5  # Used in distance calculations for coloring scheme
 
-def set_day_and_slots(noOfDays, noOfSlots):
-    global MAX_SCHEDULE_DAYS, TIME_SLOTS
-    MAX_SCHEDULE_DAYS = noOfDays
-    TIME_SLOTS = noOfSlots
+#def set_day_and_slots(noOfDays, noOfSlots):
+#    global MAX_SCHEDULE_DAYS, TIME_SLOTS
+#    MAX_SCHEDULE_DAYS = noOfDays
+#    TIME_SLOTS = noOfSlots
 
 def calculate_common_students(c1, c2):
     """
@@ -32,14 +32,14 @@ def calculate_degree(matrix, courses):
         courses[i].degree = np.sum(matrix[i] != 0)
 
 
-def initialize_colors(max_schedule_days=MAX_SCHEDULE_DAYS, time_slots=TIME_SLOTS):
+def initialize_colors(max_days, max_slots):
     """
     Initialize the color matrix with Color objects for each day and time slot.
     """
-    color_matrix = [[None for _ in range(time_slots)] for _ in range(max_schedule_days)]
+    color_matrix = [[None for _ in range(max_slots)] for _ in range(max_days)]
 
-    for day in range(max_schedule_days):
-        for slot in range(time_slots):
+    for day in range(max_days):
+        for slot in range(max_slots):
             new_color = Color(day, slot)
             color_matrix[day][slot] = new_color
 
@@ -96,7 +96,7 @@ def build_weight_matrix():
     return graph, courses, course_index
 
 
-def initialize_lecture_halls(color_matrix):
+def initialize_lecture_halls(color_matrix, max_days, max_slots):
     """
     Initialize lecture halls and assign them to each color (day-slot).
     """
@@ -105,8 +105,8 @@ def initialize_lecture_halls(color_matrix):
 
     lecture_halls = []
 
-    for day in range(MAX_SCHEDULE_DAYS):
-        for slot in range(TIME_SLOTS):
+    for day in range(max_days):
+        for slot in range(max_slots):
             color = color_matrix[day][slot]
             for number, capacity in data.items():
                 lec_hall = LectureHall(number, capacity[0], capacity[1], capacity[2], color)
@@ -115,7 +115,7 @@ def initialize_lecture_halls(color_matrix):
     return lecture_halls
 
 
-def initialize_students(course_index):
+def initialize_students(course_index, max_days, max_slots):
     """
     Initialize students with their enrolled courses.
     """
@@ -164,7 +164,7 @@ def binary_search(alist, item):
     return first
 
 
-def get_lecture_hall(max_students, sorted_list):
+def get_lecture_hall(max_students, sorted_list, max_days, max_slots):
     """
     Select a combination of lecture halls to accommodate the maximum number of students.
     """
@@ -245,7 +245,7 @@ def output_to_csv(time_slots, max_schedule_days, color_matrix):
                 schedule.writerow([day_str, color_str])
             schedule.writerow([])
 '''
-def output_to_csv(time_slots, max_schedule_days, color_matrix, csv_file_path='exam_schedule.csv'):
+def output_to_csv(max_slots, max_days, color_matrix, csv_file_path='exam_schedule.csv'):
     """
     Export the final exam schedule to a CSV file.
     
@@ -262,8 +262,8 @@ def output_to_csv(time_slots, max_schedule_days, color_matrix, csv_file_path='ex
         schedule = csv.writer(csvfile, delimiter=',')
         schedule.writerow(['Day', 'Slot', 'Course Code', 'No. of Students'])  # Correct headers
         
-        for day in range(max_schedule_days):
-            for slot in range(time_slots):
+        for day in range(max_days):
+            for slot in range(max_slots):
                 color = color_matrix[day][slot]
                 courses_in_slot = color.courses
                 if courses_in_slot:
