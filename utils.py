@@ -12,10 +12,6 @@ from models.lecture_hall import LectureHall
 #TIME_SLOTS = 3
 GAMMA = 0.5  # Used in distance calculations for coloring scheme
 
-#def set_day_and_slots(noOfDays, noOfSlots):
-#    global MAX_SCHEDULE_DAYS, TIME_SLOTS
-#    MAX_SCHEDULE_DAYS = noOfDays
-#    TIME_SLOTS = noOfSlots
 
 def calculate_common_students(c1, c2):
     """
