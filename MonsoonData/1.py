@@ -1,5 +1,3 @@
-#i'm making admn_no and course_code pairs from cbcs and nep file together
-
 import csv
 import json
 

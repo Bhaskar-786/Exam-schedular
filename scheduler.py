@@ -116,8 +116,7 @@ def get_smallest_available_color(course, color_matrix, constraints, max_days, ma
         valid = True
 
         color = color_matrix[day][slot]
-        
-        # Construct sorted_list as per get_first_node_color
+         
         sorted_list = []
         for lh in color.lecture_halls:
             if lh.odd > 0 and lh.odd_capacity > 0:
@@ -126,11 +125,7 @@ def get_smallest_available_color(course, color_matrix, constraints, max_days, ma
                 sorted_list.append(((lh, 'e'), lh.even_capacity))
             if lh.single > 0 and lh.single_capacity > 0:
                 sorted_list.append(((lh, 's'), lh.single_capacity))
-        
-        # Sort the list based on seats in descending order
-        #sorted_list.sort(key=lambda x: x[1], reverse=True)
-        
-        # Call get_lecture_hall with the correctly formatted sorted_list
+         
         assigned_lh = get_lecture_hall(course.no_of_students, sorted_list, max_days, max_slots)
         
         if not assigned_lh:
@@ -270,9 +265,7 @@ def get_first_node_color(course, color_matrix, max_days, max_slots):
                     sorted_list.append(((lh, 'e'), lh.even_capacity))
                 if lh.single > 0:
                     sorted_list.append(((lh, 's'), lh.single_capacity))
-            
-            #sorted_list.sort(key=lambda x: x[1], reverse=True)
-            
+             
             hall_list = get_lecture_hall(course.no_of_students, sorted_list, max_days, max_slots)
             
             if hall_list:

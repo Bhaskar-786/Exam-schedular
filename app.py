@@ -6,7 +6,8 @@ import pandas as pd
 from fpdf import FPDF
 import os
 from main import (main)
-from DATAprocessingall.lecture_hall_processing import lecture_hall_processing
+from dataProcessing import prc
+from dataProcessing.lecture_hall_processing import lecture_hall_processing
 
 
 app = Flask(__name__)
@@ -105,30 +106,42 @@ def home():
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
     try:
-        # Process the files here as per your existing logic
+       
         student_file_nep = request.files.get('student_file1')
         student_file_cbcs = request.files.get('student_file2')
         hall_file = request.files.get('hall_file')
+        common_file = request.files.get('common_file')
         
-        # Check hall file
+  
         if not hall_file or not allowed_file(hall_file.filename):
             return jsonify({"message": "Please upload a valid Lecture Hall Details file!"}), 400
-
-        # Process hall file
+        if not student_file_nep or not allowed_file(student_file_nep.filename):
+            return jsonify({"message": "Please upload a valid NEP Student-Course file!"}), 400
+        if not common_file or not allowed_file(common_file.filename):
+            return jsonify({"message": "Please upload a valid common.csv file!"}), 400
+        
+        
         lecture_hall_processing(hall_file)
         
-        if student_file_nep and student_file_cbcs and allowed_file(student_file_nep.filename) and allowed_file(student_file_cbcs.filename):
-            # Call your existing file processing functions here
-            #process_files(student_file1, student_file2)  # Make sure to modify this function
-            return jsonify({"message": "Files processed successfully!"}), 200
-        elif student_file_nep and allowed_file(student_file_nep.filename):
-            # Call your existing file processing functions here
-            #process_files(student_file1)  # Make sure to modify this function
-            return jsonify({"message": "Files processed successfully!"}), 200
-        else:
-            return jsonify({"message": "Please upload both the student files!"}), 400
+        
+        nep_path = os.path.join("dataProcessing", "nep.csv")
+        student_file_nep.save(nep_path)
+        
+        common_path = os.path.join("dataProcessing", "common.csv")
+        common_file.save(common_path)
+        
+        cbcs_path = None
+        if student_file_cbcs and allowed_file(student_file_cbcs.filename):
+            cbcs_path = os.path.join("dataProcessing", "cbcs.csv")
+            student_file_cbcs.save(cbcs_path)
+        
+        # Call our processing function to process student files
+        courses_count = prc.process_student_files(nep_path, common_path, cbcs_path)
+        
+        return jsonify({"message": "Files processed successfully!", "courses_count": courses_count}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 
 # Define the route to generate the schedule
 @app.route('/api/schedule', methods=['POST'])
@@ -138,7 +151,7 @@ def generate_schedule():
         mxs = request.form.get('max_slots')
         max_days = int(mxd)
         max_slots = int(mxs)
-        main(max_days, max_slots)
+        main(max_days, max_slots)  # calling the main scheduling function 
         convert_csv_to_pdf('exam_schedule.csv', 'exam_schedule.pdf')
         convert_csv_to_pdf('lecture_hall_schedule.csv', 'lecture_hall_schedule.pdf')
         # Returning the generated schedule as a response

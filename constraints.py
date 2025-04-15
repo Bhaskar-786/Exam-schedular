@@ -12,9 +12,9 @@ class Constraints:
 
     def no_exam_clashes(self, course: Course, color: Color) -> bool:
         for scheduled_course in color.courses:
-            # Check if there is any common student between the two courses
+             
             if course.student_list & scheduled_course.student_list:
-                # Found a clash
+                
                 return False
         return True
 
@@ -25,10 +25,10 @@ class Constraints:
         max_days = self.scheduler.max_days
 
         for student in course.student_list:
-            # Check previous and next min_gap time slots
+            
             for offset in range(-min_gap, min_gap + 1):
                 if offset == 0:
-                    continue  # Skip the current slot
+                    continue   
                 check_slot_index = day * total_slots + slot + offset
                 check_day = check_slot_index // total_slots
                 check_slot = check_slot_index % total_slots

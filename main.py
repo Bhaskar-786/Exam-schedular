@@ -80,30 +80,6 @@ def main(max_days, max_slots):
     for item in schedule_lecture_hall:
         print(f"{item['Course Code']:<10} {item['Lecture Hall']:<10} {item['Position']:<10} {item['No. of seats']:<10}")
 
-    """"
-    # Print schedule for the first three students
-    print("\nSchedules for the first three students:")
-    student_ids = ['S1', 'S2', 'S3']
-    for student_id in student_ids:
-        student_courses = []
-        for course in course_list:
-            if student_id in course.student_list:
-                student_courses.append({
-                    'Course Code': course.course_code,
-                    'Day': course.color.day + 1 if course.color else None,
-                    'Slot': course.color.slot + 1 if course.color else None
-                })
-        print(f"\nStudent {student_id}:")
-        if student_courses:
-            for sc in student_courses:
-                if sc['Day'] and sc['Slot']:
-                    print(f"  {sc['Course Code']}: Day {sc['Day']}, Slot {sc['Slot']}")
-                else:
-                    print(f"  {sc['Course Code']}: Not scheduled")
-        else:
-            print("  No courses found for this student.")"
-        """
-
     # Export the schedule to CSV
     output_to_csv(max_slots, max_days, color_matrix)
     convert_lecture_hall_to_csv(schedule_lecture_hall,'lecture_hall_schedule.csv')
