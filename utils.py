@@ -60,12 +60,18 @@ def build_weight_matrix():
     for course_code, students in course_data.items():
         if not students:
             continue
+        """"
         try:
             old_day, old_slot = exam_data[course_code][0], exam_data[course_code][1]
             crs = Course(counter, course_code, students, old_day, old_slot)
         except KeyError:
             err_courses.append(course_code)
             crs = Course(counter, course_code, students, 0, 0)
+        """
+        try:
+            crs = Course(counter, course_code, students)
+        except KeyError:
+            err_courses.append(course_code)
         courses.append(crs)
         course_index[course_code] = crs
         counter += 1

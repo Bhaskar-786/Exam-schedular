@@ -1,4 +1,9 @@
 from flask import Flask, request, jsonify, send_file
+from flask_jwt_extended import (
+    JWTManager, create_access_token, jwt_required,
+    get_jwt_identity, get_jwt
+)
+from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 import sqlite3
@@ -12,6 +17,18 @@ from dataProcessing.lecture_hall_processing import lecture_hall_processing
 
 app = Flask(__name__)
 CORS(app)
+
+# JWT Config
+app.config["JWT_SECRET_KEY"] = "super-secret-key-new"  # Change in production
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
+jwt = JWTManager(app)
+
+# Token Blacklist
+blacklist = set()
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    return jwt_payload["jti"] in blacklist
 
 # Database setup
 def init_db():
@@ -83,6 +100,7 @@ def convert_csv_to_pdf(csv_path, pdf_path):
     pdf.output(pdf_path)
 
 # LOGIN API
+"""
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -97,6 +115,32 @@ def login():
         return jsonify({"message": "Invalid password"}), 401
 
     return jsonify({"message": "Login successful", "token": "fake-jwt-token"}), 200
+    """
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    user = get_user(username)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    if not check_password_hash(user[1], password):
+        return jsonify({"message": "Invalid password"}), 401
+
+    access_token = create_access_token(identity=username)
+    return jsonify({"message": "Login successful", "access_token": access_token}), 200
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    blacklist.add(jti)
+    return jsonify({"message": "Logout successful"}), 200
+
 
 @app.route('/')
 def home():
@@ -104,6 +148,7 @@ def home():
 
 # Define the route to process uploaded files
 @app.route('/api/upload', methods=['POST'])
+@jwt_required()
 def upload_files():
     try:
        
@@ -145,6 +190,7 @@ def upload_files():
 
 # Define the route to generate the schedule
 @app.route('/api/schedule', methods=['POST'])
+@jwt_required()
 def generate_schedule():
     try:
         mxd = request.form.get('max_days')
@@ -163,6 +209,7 @@ def generate_schedule():
 
 # Endpoint to serve the schedule file
 @app.route('/api/schedule/download/<file_type>/<file_name>', methods=['GET'])
+@jwt_required()
 def download_schedule(file_type, file_name):
     try:
         # If it's a schedule file or hall accommodation file, handle both.
@@ -178,6 +225,32 @@ def download_schedule(file_type, file_name):
             return send_file(file_name, as_attachment=True)
         else:
             return jsonify({"error": "Invalid file type"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/schedule/view", methods=["GET"])
+@jwt_required()
+def view_schedule_pdf():
+    pdf_path = r"exam_schedule.pdf"
+    try:
+        if not os.path.exists(pdf_path):
+            return jsonify({"error": "File not found"}), 404
+        
+        return send_file(pdf_path, mimetype="application/pdf", as_attachment=False)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/hall/view", methods=["GET"])
+@jwt_required()
+def view_hall_pdf():
+    pdf_path = r"lecture_hall_schedule.pdf"
+    try:
+        if not os.path.exists(pdf_path):
+            return jsonify({"error": "File not found"}), 404
+        
+        return send_file(pdf_path, mimetype="application/pdf", as_attachment=False)
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
