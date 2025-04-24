@@ -217,7 +217,7 @@ def download_schedule(file_type, file_name):
             # Define valid file names for both schedule and hall accommodation
             if file_name == "schedule":
                 file_name = f'exam_schedule.{file_type}'
-            elif file_name == "hall_accommodation":
+            elif file_name == "venue_allocation":
                 file_name = f'lecture_hall_schedule.{file_type}'
             else:
                 return jsonify({"error": "Invalid file name"}), 400
