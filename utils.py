@@ -4,6 +4,7 @@ import operator
 import csv
 import networkx as nx
 import pandas as pd
+import os
 
 from models.course import Course
 from models.color import Color
@@ -20,7 +21,7 @@ import networkx as nx
 import numpy as np
 import csv
 
-def compute_and_save_hoffman_bound(G, filename="hoffman_bound.csv"):
+def compute_and_save_hoffman_bound(G, filename="bounds/hoffman_bound.csv"):
     A = nx.to_numpy_array(G)
     eigenvalues = np.linalg.eigvalsh(A)
     lambda_max = max(eigenvalues)
@@ -31,12 +32,46 @@ def compute_and_save_hoffman_bound(G, filename="hoffman_bound.csv"):
     else:
         bound = 1 - (lambda_max / lambda_min)
 
+    # Ensure the directory exists
+    os.makedirs("bounds", exist_ok=True)
     with open(filename, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["Lambda Max", "Lambda Min", "Hoffman Bound"])
         writer.writerow([round(lambda_max, 4), round(lambda_min, 4), round(bound, 4)])
 
+    with open("bounds/scheduling_summary.txt", "a") as f:
+        f.write(f"Hoffman Bound: {round(bound, 4)}\n")
+
     print(f"Hoffman bound saved to {filename}")
+
+def compute_cliques(G, courses):
+    # Step 4: Find unique cliques (as sets of course codes)
+    raw_cliques = list(nx.find_cliques(G))
+    unique_cliques = set()
+
+    for clique in raw_cliques:
+        course_codes = frozenset(courses[i].course_code for i in clique)
+        unique_cliques.add(course_codes)
+
+    # Step 5: Sort cliques by size
+    sorted_cliques = sorted(unique_cliques, key=len, reverse=True)
+
+    # Step 6: Save to CSV
+    # Ensure the directory exists
+    os.makedirs("bounds", exist_ok=True)
+    with open("bounds/clique.csv", mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Clique Size", "Courses in Clique"])
+
+        for clique in sorted_cliques:
+            writer.writerow([len(clique), ", ".join(sorted(clique))])
+
+    clique_number = len(sorted_cliques[0]) if sorted_cliques else 0
+
+    with open("bounds/scheduling_summary.txt", "a") as f:
+        f.write(f"Clique Number (Largest Clique Size): {clique_number}\n")
+
+    print("Cliques saved to 'bounds/clique.csv'.")
 
 
 def calculate_common_students(c1, c2):
@@ -56,12 +91,22 @@ def calculate_degree(matrix, courses):
     # Sort courses by degree in descending order
     sorted_courses = sorted(courses, key=lambda c: c.degree, reverse=True)
 
+    # Ensure the directory exists
+    os.makedirs("bounds", exist_ok=True)
     # Save sorted degrees to CSV
-    with open("degree.csv", mode='w', newline='') as file:
+    with open("bounds/degree.csv", mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Course Code", "Degree"])  # CSV header
         for course in sorted_courses:
             writer.writerow([course.course_code, course.degree])
+
+    # Return the highest degree
+    max_degree = sorted_courses[0].degree if sorted_courses else 0
+
+    with open("bounds/scheduling_summary.txt", "a") as f:
+        f.write(f"Maximum Degree: {max_degree}\n")
+
+    print("Degrees saved to 'bounds/degree.csv'.")
 
     # Build graph and find largest clique
     G = nx.Graph()
@@ -70,27 +115,7 @@ def calculate_degree(matrix, courses):
             if matrix[i][j] != 0:
                 G.add_edge(i, j)
 
-    
-    # Step 4: Find unique cliques (as sets of course codes)
-    raw_cliques = list(nx.find_cliques(G))
-    unique_cliques = set()
-
-    for clique in raw_cliques:
-        course_codes = frozenset(courses[i].course_code for i in clique)
-        unique_cliques.add(course_codes)
-
-    # Step 5: Sort cliques by size
-    sorted_cliques = sorted(unique_cliques, key=len, reverse=True)
-
-    # Step 6: Save to CSV
-    with open("clique.csv", mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Clique Size", "Courses in Clique"])
-
-        for clique in sorted_cliques:
-            writer.writerow([len(clique), ", ".join(sorted(clique))])
-
-    print("Degrees saved to 'course_degrees.csv' and all cliques saved to 'all_cliques.csv'.")
+    compute_cliques(G, courses)
     compute_and_save_hoffman_bound(G)
 
 

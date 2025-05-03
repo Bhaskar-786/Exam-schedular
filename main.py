@@ -11,8 +11,16 @@ from utils import (
     convert_seating_plan_to_csv
 )
 from scheduler import hard_schedule
+import os
 
 def main(max_days, max_slots):
+    os.makedirs("bounds", exist_ok=True)
+    summary_file = "bounds/scheduling_summary.txt"
+
+    with open(summary_file, "w") as f:
+        f.write("Scheduling Summary\n")
+        f.write("===================\n")
+
     graph, course_list, course_index = build_weight_matrix()
 
     # Calculate degrees for prioritizing course scheduling
@@ -57,10 +65,12 @@ def main(max_days, max_slots):
                     })"""
     
     schedule_data = []
+    total_no_of_slots = 0
     for day in range(max_days):
         for slot in range(max_slots):
             courses_in_slot = color_matrix[day][slot].courses
             if courses_in_slot:
+                total_no_of_slots += 1
                 for course in courses_in_slot:
                     schedule_data.append({
                         'Course Code': course.course_code,
@@ -68,6 +78,9 @@ def main(max_days, max_slots):
                         'Day': day + 1,
                         'Slot': slot + 1
                     })
+
+    with open("bounds/scheduling_summary.txt", mode='a') as f:
+        f.write(f"Total no. of slots: {total_no_of_slots}\n")
 
     """schedule_lecture_hall = []
     for course in course_list:
@@ -82,15 +95,17 @@ def main(max_days, max_slots):
     
     # Grouping schedule by day and slot, sorted by course code
     schedule_lecture_hall = defaultdict(lambda: defaultdict(list))
-
+    max_LH = 0
     for day in range(max_days):
         for slot in range(max_slots):
             courses_in_slot = color_matrix[day][slot].courses
             if courses_in_slot:
+                LH_list = set()
                 for course in courses_in_slot:
                     # Create a list to store lecture hall details for each course
                     hall_numbers = []
                     for hall, seating_info in course.lecture_hall.items():
+                        LH_list.add(f"{hall.number}")
                         for position, seat_taken in seating_info.items():
                             if f"{hall.number}" not in hall_numbers:
                                 hall_numbers.append(f"{hall.number}")
@@ -104,8 +119,12 @@ def main(max_days, max_slots):
                         "No. of Students": course.no_of_students,
                         "Venue": venue
                     })
+                max_LH = max(max_LH, len(LH_list))
             schedule_lecture_hall[day][slot].sort(key=lambda x: x["Course Code"])
 
+    with open("bounds/scheduling_summary.txt", mode='a') as f:
+        f.write(f"Max lecture halls used at any slot: {max_LH}\n")
+    
     # Grouping schedule by day and slot, sorted by course code
     schedule_seating_plan = defaultdict(lambda: defaultdict(list))
 

@@ -1,0 +1,7 @@
+Scheduling Summary
+===================
+Maximum Degree: 126
+Clique Number (Largest Clique Size): 9
+Hoffman Bound: 3.8696
+Total no. of slots: 14
+Max lecture halls used at any slot: 41
