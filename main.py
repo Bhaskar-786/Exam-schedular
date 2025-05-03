@@ -1,4 +1,5 @@
 import sys
+from collections import defaultdict
 from utils import (
     build_weight_matrix,
     calculate_degree,
@@ -7,6 +8,7 @@ from utils import (
     initialize_lecture_halls,
     output_to_csv,
     convert_lecture_hall_to_csv,
+    convert_seating_plan_to_csv
 )
 from scheduler import hard_schedule
 
@@ -33,8 +35,14 @@ def main(max_days, max_slots):
 
     if no_of_unscheduled_courses != 0:
         print(f"Unable to schedule {no_of_unscheduled_courses} courses. Consider increasing the number of days or slots.")
+        raise ValueError(
+            f"{no_of_unscheduled_courses} course(s) could not be scheduled. "
+            "Consider increasing the number of days or time slots."
+        )
+        
 
-    # Prepare schedule data for output
+
+    """# Prepare schedule data for output
     schedule_data = []
     for day in range(max_days):
         for slot in range(max_slots):
@@ -46,9 +54,22 @@ def main(max_days, max_slots):
                         'Slot': slot + 1,
                         'Course Code': course.course_code,
                         'Students': course.no_of_students
+                    })"""
+    
+    schedule_data = []
+    for day in range(max_days):
+        for slot in range(max_slots):
+            courses_in_slot = color_matrix[day][slot].courses
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    schedule_data.append({
+                        'Course Code': course.course_code,
+                        'Students': course.no_of_students,
+                        'Day': day + 1,
+                        'Slot': slot + 1
                     })
 
-    schedule_lecture_hall = []
+    """schedule_lecture_hall = []
     for course in course_list:
         for hall, seating_info in course.lecture_hall.items():
             for position, seat_taken in seating_info.items():  # Iterate through seat allocations
@@ -57,32 +78,104 @@ def main(max_days, max_slots):
                     "Lecture Hall": hall.number,
                     "Position": "Left" if position == 'o' else "Right" if position == 'e' else "Single",
                     "No. of seats": seat_taken
-                })
+                })"""
+    
+    # Grouping schedule by day and slot, sorted by course code
+    schedule_lecture_hall = defaultdict(lambda: defaultdict(list))
+
+    for day in range(max_days):
+        for slot in range(max_slots):
+            courses_in_slot = color_matrix[day][slot].courses
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    # Create a list to store lecture hall details for each course
+                    hall_numbers = []
+                    for hall, seating_info in course.lecture_hall.items():
+                        for position, seat_taken in seating_info.items():
+                            if f"{hall.number}" not in hall_numbers:
+                                hall_numbers.append(f"{hall.number}")
+
+                    # Join the hall numbers into a string
+                    venue = ", ".join(hall_numbers)
+                
+                    # Sort by course code before appending
+                    schedule_lecture_hall[day][slot].append({
+                        "Course Code": course.course_code,
+                        "No. of Students": course.no_of_students,
+                        "Venue": venue
+                    })
+            schedule_lecture_hall[day][slot].sort(key=lambda x: x["Course Code"])
+
+    # Grouping schedule by day and slot, sorted by course code
+    schedule_seating_plan = defaultdict(lambda: defaultdict(list))
+
+    for day in range(max_days):
+        for slot in range(max_slots):
+            courses_in_slot = color_matrix[day][slot].courses
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    for hall, seating_info in course.lecture_hall.items():
+                        for position, seat_taken in seating_info.items():  # Iterate through seat allocations
+                            schedule_seating_plan[day][slot].append({
+                                "Course Code": course.course_code,
+                                "Lecture Hall": hall.number,
+                                "Position": "Left" if position == 'o' else "Right" if position == 'e' else "Single",
+                                "No. of seats": seat_taken
+                            })
+            schedule_seating_plan[day][slot].sort(key=lambda x: x["Course Code"])
 
 
     # Sort schedule data by Day and Slot
-    schedule_data.sort(key=lambda x: (x['Day'], x['Slot']))
+    #schedule_data.sort(key=lambda x: (x['Day'], x['Slot']))
+    schedule_data.sort(key=lambda x: (x['Course Code']))
 
     # Sort schedule lecture hall by Course and Lecture Hall
-    schedule_lecture_hall.sort(key=lambda x: (x['Course Code']))
+    #schedule_lecture_hall.sort(key=lambda x: (x['Course Code']))
 
     # Print schedule in a table format
     print("\nExam Schedule:")
-    print(f"{'Day':<5} {'Slot':<5} {'Course Code':<10} {'Students':<10}")
+    print(f"{'Course Code':<10} {'Students':<10} {'Day':<5} {'Slot':<5}")
     print("-" * 40)
     for item in schedule_data:
-        print(f"{item['Day']:<5} {item['Slot']:<5} {item['Course Code']:<10} {item['Students']:<10}")
+        print(f"{item['Course Code']:<10} {item['Students']:<10} {item['Day']:<5} {item['Slot']:<5}")
 
     # Print Lecture Hall in a table format
     print("\nLecture Hall Schedule:")
-    print(f"{'Course Code':<10} {'Lecture Hall':<10} {'Position':<10} {'No. of seats':<10}")
-    print("-" * 40)
-    for item in schedule_lecture_hall:
-        print(f"{item['Course Code']:<10} {item['Lecture Hall']:<10} {item['Position']:<10} {item['No. of seats']:<10}")
+    print(f"{'Day':<10} {'Slot':<10} {'Course Code':<15} {'No. of Students':<15} {'Venue':<40}")
+    print("-" * 80)
+
+    # Iterate through each day and slot
+    for day in range(max_days):
+        for slot in range(max_slots):
+            # Get the courses in the current day and slot
+            courses_in_slot = schedule_lecture_hall[day][slot]
+        
+            # If there are courses in this day and slot, print them
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    print(f"Day {day + 1:<6} Slot {slot + 1:<6} {course['Course Code']:<15} {course['No. of Students']:<15} {course['Venue']:<40}")
+
+    # Print Lecture Hall in a table format
+    print("\nSeating Plan:")
+    print(f"{'Day':<10} {'Slot':<10} {'Course Code':<15} {'Lecture Hall':<20} {'Position':<10} {'No. of seats':<10}")
+    print("-" * 80)
+
+    # Iterate through each day and slot
+    for day in range(max_days):
+        for slot in range(max_slots):
+            # Get the courses in the current day and slot
+            courses_in_slot = schedule_seating_plan[day][slot]
+    
+            # If there are courses in this day and slot, print them
+            if courses_in_slot:
+                for course in courses_in_slot:
+                    print(f"Day {day + 1:<6} Slot {slot + 1:<6} {course['Course Code']:<15} {course['Lecture Hall']:<20} {course['Position']:<10} {course['No. of seats']:<10}")
+
 
     # Export the schedule to CSV
-    output_to_csv(max_slots, max_days, color_matrix)
-    convert_lecture_hall_to_csv(schedule_lecture_hall,'lecture_hall_schedule.csv')
+    output_to_csv(schedule_data)
+    convert_lecture_hall_to_csv(max_days,max_slots,schedule_lecture_hall,'lecture_hall_schedule.csv')
+    convert_seating_plan_to_csv(max_days,max_slots,schedule_seating_plan,'seating_plan.csv')
 
     # Optionally, print total number of scheduled courses
     total_scheduled_courses = len(schedule_data)
@@ -95,6 +188,6 @@ def main(max_days, max_slots):
         print("All courses have been scheduled successfully.")
 
 if __name__ == "__main__":
-    days = int(sys.argv[1]) if len(sys.argv) > 1 else 8
-    slots = int(sys.argv[2]) if len(sys.argv) > 1 else 2
+    days = int(sys.argv[1]) if len(sys.argv) > 0 else 8
+    slots = int(sys.argv[2]) if len(sys.argv) > 0 else 2
     main(days, slots)

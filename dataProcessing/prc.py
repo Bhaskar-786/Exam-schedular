@@ -73,29 +73,33 @@ def build_courses_and_students(pairs):
         students.setdefault(admn_no, []).append(sub_code)
     return courses, students
 
-def process_student_files(nep_file_path, common_file_path, cbcs_file_path=None):
+def process_student_files(nep_file, common_file=None, cbcs_file=None):
    
-    
 
     pairs = []
-    pairs.extend(load_pairs_from_csv(nep_file_path))
+    pairs.extend(load_pairs_from_csv(nep_file))
      
-    if cbcs_file_path and os.path.exists(cbcs_file_path):
-        pairs.extend(load_pairs_from_csv(cbcs_file_path))
+    if cbcs_file and os.path.exists(cbcs_file):
+        pairs.extend(load_pairs_from_csv(cbcs_file))
      
     pairs_json_path = os.path.join("..", "data", "pairs.json")
-    save_json(pairs, pairs_json_path)
+    with open('data/pairs.json', 'w') as f:
+            json.dump(pairs, f, indent=4)
     print(f"Initial pairs saved to {pairs_json_path}.")
  
-    pairs = update_pairs_with_common_courses(pairs, common_file_path)
-    save_json(pairs, pairs_json_path)
-    print(f"Updated pairs with common course mappings saved to {pairs_json_path}.")
+    if common_file and os.path.exists(common_file):
+        pairs = update_pairs_with_common_courses(pairs, common_file)
+        with open('data/pairs.json', 'w') as f:
+            json.dump(pairs, f, indent=4)
+        print(f"Updated pairs with common course mappings saved to {pairs_json_path}.")
  
     courses, students = build_courses_and_students(pairs)
     courses_json_path = os.path.join("..", "data", "data_course.json")
     students_json_path = os.path.join("..", "data", "data_student.json")
-    save_json(courses, courses_json_path)
-    save_json(students, students_json_path)
+    with open('data/data_course.json', 'w') as f:
+            json.dump(courses, f, indent=4)
+    with open('data/data_student.json', 'w') as f:
+            json.dump(students, f, indent=4)
     print(f"Courses data saved to {courses_json_path}.")
     print(f"Students data saved to {students_json_path}.")
 
